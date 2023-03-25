@@ -5,6 +5,7 @@ const credentials = require('./credentials.json');
 const sheetId = '1112wh9MtfOEpj0nBBhNIt_UZ4W5DfVB24FcV6yx4jP8';
 const cors = require('cors');
 const express = require('express');
+require("dotenv").config();
 
 
 const auth = new google.auth.GoogleAuth({
