@@ -1,11 +1,11 @@
 const axios = require('axios');
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
 const { google } = require('googleapis');
 const credentials = require('./credentials.json');
 const sheetId = '1112wh9MtfOEpj0nBBhNIt_UZ4W5DfVB24FcV6yx4jP8';
 const cors = require('cors');
 const express = require('express');
-require("dotenv").config();
+// require("dotenv").config();
 
 
 const auth = new google.auth.GoogleAuth({
@@ -31,16 +31,9 @@ app.get('/run-mystifly',async(req,res)=>{
   const mystId = req.query.mystId;
   async function getApiResponse() {
     const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+    headless: true,
     executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+      process.env.PUPPETEER_EXECUTABLE_PATH
   });
     const page = await browser.newPage();
     await page.goto('https://login.myfarebox.com');
@@ -253,16 +246,11 @@ app.get('/run-katran', async (req, res) => {
       //Converting the Unstructured Data into Structured Data for TBO
       async function getApi() {
         const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+    headless: true,
     executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+      
+         process.env.PUPPETEER_EXECUTABLE_PATH
+        
   });
         const page = await browser.newPage();
         const apiResponse = await getApiResponse();
@@ -405,16 +393,11 @@ app.get('/run-katran', async (req, res) => {
         
       const body = {"directFlight":"false","adultCount":"1","childCount":"0","infantCount":"0","flightCabinClass":"1","journeyType":"1","preferredDepartureTime":`${tcdate}`,"origin":`${originXDest}`,"destination":`${finalXDest}`,"memberCode":"mj7hj","organizationCode":"orfajd"};
       const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+       headless:true,
     executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+     
+         process.env.PUPPETEER_EXECUTABLE_PATH
+        
   });
       const page = await browser.newPage();
       await page.goto('https://www.travclan.com');
@@ -513,16 +496,11 @@ app.get('/run-katran', async (req, res) => {
   const airlineFilter = req.query.airlineFilter;
   async function gettripjackResponse() {
     const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+    headless: true,
     executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+     
+         process.env.PUPPETEER_EXECUTABLE_PATH
+        
   });
     const page = await browser.newPage();
     await page.goto('https://www.travclan.com');
@@ -717,6 +695,7 @@ app.get('/run-katran', async (req, res) => {
 
 
 
-  app.listen(process.env.PORT || 3000, () => {
-    console.log("starting....");
-  });
+
+  app.listen(3000, () => {
+    console.log('Server listening on port 3000');
+  }); 
