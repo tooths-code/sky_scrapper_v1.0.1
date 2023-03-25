@@ -38,8 +38,10 @@ app.get('/run-mystifly',async(req,res)=>{
       "--no-zygote",
     ],
     executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH
-  });
+    process.env.NODE_ENV === "production"
+      ? process.env.PUPPETEER_EXECUTABLE_PATH
+      : puppeteer.executablePath(),
+});
     const page = await browser.newPage();
     await page.goto('https://login.myfarebox.com');
 
@@ -258,10 +260,10 @@ app.get('/run-katran', async (req, res) => {
       "--no-zygote",
     ],
     executablePath:
-      
-         process.env.PUPPETEER_EXECUTABLE_PATH
-        
-  });
+    process.env.NODE_ENV === "production"
+      ? process.env.PUPPETEER_EXECUTABLE_PATH
+      : puppeteer.executablePath(),
+});
         const page = await browser.newPage();
         const apiResponse = await getApiResponse();
         await page.setContent(apiResponse.data);
@@ -410,10 +412,10 @@ app.get('/run-katran', async (req, res) => {
       "--no-zygote",
     ],
     executablePath:
-     
-         process.env.PUPPETEER_EXECUTABLE_PATH
-        
-  });
+    process.env.NODE_ENV === "production"
+      ? process.env.PUPPETEER_EXECUTABLE_PATH
+      : puppeteer.executablePath(),
+});
       const page = await browser.newPage();
       await page.goto('https://www.travclan.com');
       const response = await page.evaluate(({ headers, body }) => {
@@ -518,10 +520,10 @@ app.get('/run-katran', async (req, res) => {
       "--no-zygote",
     ],
     executablePath:
-     
-         process.env.PUPPETEER_EXECUTABLE_PATH
-        
-  });
+    process.env.NODE_ENV === "production"
+      ? process.env.PUPPETEER_EXECUTABLE_PATH
+      : puppeteer.executablePath(),
+});
     const page = await browser.newPage();
     await page.goto('https://www.travclan.com');
     
