@@ -7,6 +7,8 @@ const cors = require('cors');
 const express = require('express');
 require("dotenv").config();
 
+const PORT = process.env.PORT || 4000;
+
 
 const auth = new google.auth.GoogleAuth({
   credentials: credentials,
@@ -717,7 +719,6 @@ app.get('/run-katran', async (req, res) => {
 
 
 
-
-  app.listen(3000, () => {
-    console.log('Server listening on port 3000');
-  }); 
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});
