@@ -8,6 +8,8 @@ const express = require('express');
 require("dotenv").config();
 
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const auth = new google.auth.GoogleAuth({
   credentials: credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -31,12 +33,11 @@ app.get('/run-mystifly',async(req,res)=>{
   const mystId = req.query.mystId;
   async function getApiResponse() {
     const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+      args: isProduction ? [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ] : [],
     executablePath:
     process.env.NODE_ENV === "production"
       ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -253,12 +254,11 @@ app.get('/run-katran', async (req, res) => {
       //Converting the Unstructured Data into Structured Data for TBO
       async function getApi() {
         const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+          args: isProduction ? [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage'
+          ] : [],
     executablePath:
     process.env.NODE_ENV === "production"
       ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -405,12 +405,11 @@ app.get('/run-katran', async (req, res) => {
         
       const body = {"directFlight":"false","adultCount":"1","childCount":"0","infantCount":"0","flightCabinClass":"1","journeyType":"1","preferredDepartureTime":`${tcdate}`,"origin":`${originXDest}`,"destination":`${finalXDest}`,"memberCode":"mj7hj","organizationCode":"orfajd"};
       const browser = await puppeteer.launch({
-   args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+        args: isProduction ? [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage'
+        ] : [],
     executablePath:
     process.env.NODE_ENV === "production"
       ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -513,12 +512,11 @@ app.get('/run-katran', async (req, res) => {
   const airlineFilter = req.query.airlineFilter;
   async function gettripjackResponse() {
     const browser = await puppeteer.launch({
-    args: [
-      "--disable-setuid-sandbox",
-      "--no-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
+      args: isProduction ? [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ] : [],
     executablePath:
     process.env.NODE_ENV === "production"
       ? process.env.PUPPETEER_EXECUTABLE_PATH
