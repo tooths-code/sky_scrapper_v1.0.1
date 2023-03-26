@@ -22,14 +22,14 @@ app.use(cors());
 
 
 app.get('/', async (req, res) => {
-  res.send('Hello Tooths! How you doin?')
+  res.send('Hello! Welcome to Sky Scrapper v1.0.1')
 });
 
 app.get('/run-mystifly',async(req,res)=>{
   try{
   const originXDest = req.query.origin;
   const finalXDest = req.query.destination;
-  const tcdate = req.query.tcdate;
+  const tcdate = req.query.date;
   const mystId = req.query.mystId;
   async function getApiResponse() {
     const browser = await puppeteer.launch({
@@ -107,9 +107,9 @@ app.get('/run-mystifly',async(req,res)=>{
       const modifieddata = {
         logDate: formattedDate,
         provider:'Mystifly',
-        airlineName: items.SegmentRef.MarketingCarriercode,
+        airlineName: items.SegmentRef.MarketingCarriercode === 'G8' ? 'Go First' : items.SegmentRef.MarketingCarriercode === '6E' ? 'Indigo' : items.SegmentRef.MarketingCarriercode === 'I5' ? 'Air Asia' : items.SegmentRef.MarketingCarriercode === 'UK' ? 'Vistara' : items.SegmentRef.MarketingCarriercode,
         airlineNumber: `${items.SegmentRef.MarketingCarriercode} - ${items.SegmentRef.MarketingFlightNumber}`,
-        fareName: items.ItineraryRef.FareFamily,
+        fareName: items.ItineraryRef.FareFamily === ""?"No Fare Family" : items.ItineraryRef.FareFamily,
         farePrice: items.FareRef.PassengerFare[0].TotalFare,
         stoppage: items.SegmentRef.ArrivalAirportLocationCode === finalXDest ?'Direct':'Indirect',
         originDest: originXDest,
@@ -154,6 +154,14 @@ app.get('/run-katran', async (req, res) => {
     const deptXDate = req.query.date;
     const traceId = req.query.traceId;
     const airlineFilter = req.query.airlineFilter;
+    
+    //Date ko sahi format me larha hu
+    const dateObj = new Date(deptXDate);
+    const day = dateObj.getDate();
+    const month = dateObj.toLocaleString('default', { month: 'short' }).substr(0, 3);
+    const finalDate = `${day}-${month}-${dateObj.getFullYear()}`;
+    
+
 
     async function getApiResponse() {
         const headers = {
@@ -173,7 +181,7 @@ app.get('/run-katran', async (req, res) => {
         formData.append('SessionStamp', '832023141735978');
         formData.append('origin', originXDest);
         formData.append('destination', finalXDest);
-        formData.append('departDate', deptXDate);
+        formData.append('departDate', finalDate);
         formData.append('OutBoundTime', '00:00:00');
         formData.append('returnDate', '08-Mar-2023');
         formData.append('InBoundTime', '00:00:00');
@@ -351,12 +359,10 @@ app.get('/run-katran', async (req, res) => {
     try{
       const originXDest = req.query.origin;
       const finalXDest = req.query.destination;
-      const tcdate = req.query.tcdate;
+      const tcdate = req.query.date;
       const tcId = req.query.tcId;
       const airlineFilter = req.query.airlineFilter;
     
-      console.log(airlineFilter);
-      console.log(originXDest);
        //Get TC Responses from API
       async function getTcResponse() {
         const headers = {
@@ -366,7 +372,17 @@ app.get('/run-katran', async (req, res) => {
       'authorization': `${tcId}`,
       'authorization-mode': 'AWSCognito',
       'content-length': '1000',
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'origin': 'https://www.travclan.com',
+      'referer': 'https://www.travclan.com/',
+      'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Microsoft Edge";v="110"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': 'Windows',
+      'sec-fetch-dest': 'empty',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-site': 'same-site',
+      'source': 'website',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57'
         };
         
       const body = {"directFlight":"false","adultCount":"1","childCount":"0","infantCount":"0","flightCabinClass":"1","journeyType":"1","preferredDepartureTime":`${tcdate}`,"origin":`${originXDest}`,"destination":`${finalXDest}`,"memberCode":"mj7hj","organizationCode":"orfajd"};
@@ -393,9 +409,10 @@ app.get('/run-katran', async (req, res) => {
         .then(data => data)
         .catch(error => console.error(error));
       }, { headers, body }, { timeout: 60000 });
+    
       await browser.close();
       const modifiedJsonArray = [];
-      const originalJsonArray1 = response.response.results.outboundFlights;
+      const originalJsonArray1 = response.response.results.outboundFlights
       const dateNow = new Date();  
       const formattedDate = dateNow.toLocaleString('en-US', { 
       year: 'numeric', 
@@ -462,7 +479,7 @@ app.get('/run-katran', async (req, res) => {
   try{
   const originXDest = req.query.origin;
   const finalXDest = req.query.destination;
-  const tjdate = req.query.tcdate;
+  const tjdate = req.query.date;
   const tjId = req.query.tjId;
   const airlineFilter = req.query.airlineFilter;
   async function gettripjackResponse() {
@@ -667,8 +684,6 @@ app.get('/run-katran', async (req, res) => {
     }
   })
   
-
-
 
 
   app.listen(3000, () => {
