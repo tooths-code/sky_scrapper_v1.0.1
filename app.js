@@ -7,8 +7,6 @@ const cors = require('cors');
 const express = require('express');
 require("dotenv").config();
 
-const PORT = process.env.PORT || 4000;
-
 
 const auth = new google.auth.GoogleAuth({
   credentials: credentials,
@@ -45,7 +43,7 @@ app.get('/run-mystifly',async(req,res)=>{
       : puppeteer.executablePath(),
 });
     const page = await browser.newPage();
-    await page.goto('https://login.myfarebox.com');
+    await page.goto('https://login.myfarebox.com', {timeout: 60000});
 
     const headers ={
         'Authorization': `${mystId}`,
@@ -419,7 +417,7 @@ app.get('/run-katran', async (req, res) => {
       : puppeteer.executablePath(),
 });
       const page = await browser.newPage();
-      await page.goto('https://www.travclan.com');
+      await page.goto('https://www.travclan.com',{timeout: 60000});
       const response = await page.evaluate(({ headers, body }) => {
         return fetch('https://aggregator-flights-v1.travclan.com/api/v2/flights/search/', {
           method: 'POST',
@@ -527,7 +525,7 @@ app.get('/run-katran', async (req, res) => {
       : puppeteer.executablePath(),
 });
     const page = await browser.newPage();
-    await page.goto('https://www.travclan.com');
+    await page.goto('https://www.travclan.com', {timeout: 60000});
     
     const headers = {
         'authorization': `${tjId}`,
@@ -719,6 +717,7 @@ app.get('/run-katran', async (req, res) => {
 
 
 
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+
+  app.listen(3000, () => {
+    console.log('Server listening on port 3000');
+  }); 
