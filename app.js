@@ -67,14 +67,14 @@ app.get('/run-mystifly',async(req,res)=>{
     },{headers,body},{ timeout: 60000 });
 
     await browser.close();
-    const fresponse = response;
-    const flightSegments = fresponse.Data.FlightSegmentList;
-    const fartypeslist = fresponse.Data.ItineraryReferenceList;
-    const fareRef = fresponse.Data.PricedItineraries.map(items=>{
+    // const fresponse = response;
+    const flightSegments = response.Data.FlightSegmentList;
+    const fartypeslist = response.Data.ItineraryReferenceList;
+    const fareRef = response.Data.PricedItineraries.map(items=>{
         return { FareRef: Number(items.FareRef) };
     });
-    const farePricing = fresponse.Data.FlightFaresList;
-    const pricingList = fresponse.Data.PricedItineraries.map(items=>items.OriginDestinations[0]);
+    const farePricing = response.Data.FlightFaresList;
+    const pricingList = response.Data.PricedItineraries.map(items=>items.OriginDestinations[0]);
     const mergedArray = pricingList.map((item, i) => {
         return Object.assign({}, item, fareRef[i]);
       });
@@ -86,13 +86,12 @@ app.get('/run-mystifly',async(req,res)=>{
         const segment = flightSegments[SegmentRef];
         const fareType =  fartypeslist[ItineraryRef];
         const farePrices =  farePricing[FareRef];
-
-        
         return { SegmentRef: segment, ItineraryRef: fareType, FareRef: farePrices};
       });
-    // console.log(dataPush);
+
 
     const finalJson = [];
+    
     const dateNow = new Date();    
     const formattedDate = dateNow.toLocaleString('en-US', { 
       year: 'numeric', 
@@ -119,7 +118,7 @@ app.get('/run-mystifly',async(req,res)=>{
       }
       finalJson.push(modifieddata);
     });
-    // console.log(finalJson);
+   
 
     const createRequest = {
       spreadsheetId: sheetId,
@@ -155,12 +154,7 @@ app.get('/run-katran', async (req, res) => {
     const deptXDate = req.query.date;
     const traceId = req.query.traceId;
     const airlineFilter = req.query.airlineFilter;
-    console.log(originXDest);
-    // const tbocookies = req.query.tbocookies;
-    
-    console.log('tbocookies:', traceId);
 
-    // Get Response from TBO Flight API
     async function getApiResponse() {
         const headers = {
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -169,26 +163,13 @@ app.get('/run-katran', async (req, res) => {
             'cache-control': 'max-age=0',
             'content-length': '1132',
             'content-type': 'application/x-www-form-urlencoded',
-            'cookie':`${traceId}`,
-            'origin': 'https://m.travelboutiqueonline.com',
-            'referer': 'https://m.travelboutiqueonline.com/FlightSearch.aspx',
-            'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Brave";v="110"',
-            'sec-ch-ua-mobile': '?1',
-            'sec-ch-ua-platform': '"Android"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            'sec-gpc': '1',
-            'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36'
+            'cookie':`${traceId}`
               };
 
         const formData = new FormData();
         formData.append('ReturnType', '0');
         formData.append('LoginType', 'Agent');
         formData.append('Email', 'john15jacob@gmail.com');
-        // formData.append('TraceId', '04f5b01e-6b51-41f5-a58b-1a9cf70bd45e');
         formData.append('SessionStamp', '832023141735978');
         formData.append('origin', originXDest);
         formData.append('destination', finalXDest);
@@ -246,28 +227,22 @@ app.get('/run-katran', async (req, res) => {
           .catch(error => {
             console.error(error);
           });
-          return responses;
-          
-      }
+          const apiResponse = responses;
 
-     
-      //Converting the Unstructured Data into Structured Data for TBO
-      async function getApi() {
-        const browser = await puppeteer.launch({
-          args: isProduction ? [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-          ] : [],
-    executablePath:
-    process.env.NODE_ENV === "production"
-      ? process.env.PUPPETEER_EXECUTABLE_PATH
-      : puppeteer.executablePath(),
-});
+          const browser = await puppeteer.launch({
+            args: isProduction ? [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage'
+            ] : [],
+      executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
+        });
+        
         const page = await browser.newPage();
-        const apiResponse = await getApiResponse();
         await page.setContent(apiResponse.data);
-          
         const a = await page.evaluate(()=>{
     
             //Sare Hidden FareTypes bhi Show karne lag jaenge
@@ -289,12 +264,12 @@ app.get('/run-katran', async (req, res) => {
                 const fareType = Array.from(items.querySelectorAll('.flightprice > .tbofullwidth')).map((item)=>{
                     const fareName = item.querySelector('div > .pubbtnbox> div:last-child').innerText;
                     const farePrice = item.querySelector('div > .newprice.mobnewprice:nth-child(3)').innerText.replace('Rs. ','');
-                    return `${fareName}:${farePrice}`;
+                    return { fareName, farePrice };
                 })
-                // return `${airlinename}:${airlineNumber}:${originDest}:${finalDest}:${stoppage}:${fareType}`
+                
                 tboscrap.push({
                     deptDate,
-                    airlinename,
+                    airlinename: airlinename === 'GO FIRST' ? 'Go First' : airlinename === 'SpiceJet' ? 'Spicejet' : airlinename,
                     airlineNumber,
                     originDest,
                     finalDest,
@@ -302,13 +277,9 @@ app.get('/run-katran', async (req, res) => {
                     deptDate,
                     fareType
                   });
-                  return tboscrap;
             })
-            // return flightCards
-            const finaltboScrap=[];
-        tboscrap.forEach((items)=>{
-            items.fareType.forEach((fares)=>{
-                const dateNow = new Date();  
+            
+            const dateNow = new Date();  
                 const formattedDate = dateNow.toLocaleString('en-US', { 
                 year: 'numeric', 
                 month: '2-digit', 
@@ -318,18 +289,22 @@ app.get('/run-katran', async (req, res) => {
                 second: '2-digit', 
                 hour12: false 
                 });
-                const [fareName,farePrice]= fares.split(':');
+
+            const finaltboScrap=[];
+        tboscrap.forEach((items)=>{
+            items.fareType.forEach(({ fareName, farePrice })=>{
+                
                 const newFareCombo = {
                                 logDate:formattedDate,
                                 provider:'tbo',
-                                airlineName:items.airlinename ==='GO FIRST'?'Go First': items.airlinename==='SpiceJet'?'Spicejet':items.airlinename,
+                                airlineName:items.airlinename,
                                 airlineNumber:items.airlineNumber,
                                 originDest:items.originDest,
                                 finalDest:items.finalDest,
                                 stoppage:items.stoppage,
                                 deptDate:items.deptDate,
-                                fareName:fareName,
-                                farePrice:farePrice
+                                fareName,
+                                farePrice
                             };
                 finaltboScrap.push(newFareCombo);           
            })
@@ -361,10 +336,11 @@ app.get('/run-katran', async (req, res) => {
           
           await sheets.spreadsheets.values.update(createRequest);
           await browser.close();
-      };
-      getApi();
-      await getApi();
-      res.send('Yes Yes Yes Yes I did it');
+    }
+      
+    await getApiResponse();
+     
+    res.send('Yes Yes Yes Yes I did it');
     } catch (error) {
       console.error(error);
       res.status(500).send('Watch Out! There is some critical error in the code');
@@ -390,17 +366,7 @@ app.get('/run-katran', async (req, res) => {
       'authorization': `${tcId}`,
       'authorization-mode': 'AWSCognito',
       'content-length': '1000',
-      'content-type': 'application/json',
-      'origin': 'https://www.travclan.com',
-      'referer': 'https://www.travclan.com/',
-      'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Microsoft Edge";v="110"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': 'Windows',
-      'sec-fetch-dest': 'empty',
-      'sec-fetch-mode': 'cors',
-      'sec-fetch-site': 'same-site',
-      'source': 'website',
-      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57'
+      'content-type': 'application/json'
         };
         
       const body = {"directFlight":"false","adultCount":"1","childCount":"0","infantCount":"0","flightCabinClass":"1","journeyType":"1","preferredDepartureTime":`${tcdate}`,"origin":`${originXDest}`,"destination":`${finalXDest}`,"memberCode":"mj7hj","organizationCode":"orfajd"};
@@ -428,72 +394,61 @@ app.get('/run-katran', async (req, res) => {
         .catch(error => console.error(error));
       }, { headers, body }, { timeout: 60000 });
       await browser.close();
-      return response.response.results.outboundFlights;
-    }
-      
-      
       const modifiedJsonArray = [];
-      const originalJsonArray1 = [];
+      const originalJsonArray1 = response.response.results.outboundFlights;
+      const dateNow = new Date();  
+      const formattedDate = dateNow.toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit', 
+      hour12: false 
+      });
 
-      //Modifying the TC_Data into My Structure 
-      async function main() {
-          const apiResponse = await getTcResponse();
-          // console.log((apiResponse))
-          originalJsonArray1.push(...apiResponse);
-          const dateNow = new Date();  
-          const formattedDate = dateNow.toLocaleString('en-US', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit',
-          hour: '2-digit', 
-          minute: '2-digit', 
-          second: '2-digit', 
-          hour12: false 
-          });
+      originalJsonArray1.forEach(items=>{
+        const modifieddata = {
+          logDate: formattedDate,
+          fareName: items.fareIdentifier.name,
+          farePrice: items.fF,
+          provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': 'Null',
+          airlineName: items.sg[0].al.alN === 'Airasia'?'Air Asia':items.sg[0].al.alN === 'Airasia India'?'Air Asia':items.sg[0].al.alN,
+          airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
+          orgDest:`${items.sg[0].or.aC}`,
+          finDest: `${items.sg[items.sg.length-1].ds.aC}`,
+          deptDate: `${items.sg[0].or.dT.split('T')[0]}`,
+          stoppage: items.sg.length !== 1 ? 'Stops' : 'Non-Stop',
+        }
 
-          originalJsonArray1.forEach(items=>{
-            const modifieddata = {
-              logDate: formattedDate,
-              fareName: items.fareIdentifier.name,
-              farePrice: items.fF,
-              provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': 'Null',
-              airlineName: items.sg[0].al.alN === 'Airasia'?'Air Asia':items.sg[0].al.alN === 'Airasia India'?'Air Asia':items.sg[0].al.alN,
-              airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
-              orgDest:`${items.sg[0].or.aC}`,
-              finDest: `${items.sg[items.sg.length-1].ds.aC}`,
-              deptDate: `${items.sg[0].or.dT.split('T')[0]}`,
-              stoppage: items.sg.length !== 1 ? 'Stops' : 'Non-Stop',
-            }
+      modifiedJsonArray.push(modifieddata);
+      })
 
-          modifiedJsonArray.push(modifieddata);
-          })
+      const finalJson = modifiedJsonArray.filter(items=>{
+        if(airlineFilter){
+          return items.airlineName === `${airlineFilter}`
+        }
+        return items.airlineName
+      })
 
-          const finalJson = modifiedJsonArray.filter(items=>{
-            if(airlineFilter){
-              return items.airlineName === `${airlineFilter}`
-            }
-            return items.airlineName
-          })
+      //Pushing the JSON Data in Sheet
+      const updateRequest = {
+        spreadsheetId: sheetId,
+        range: 'TCv2!A2',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: [
+            ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
+              [logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice]
+            )
+          ],
+        },
+      };
+      
+      await sheets.spreadsheets.values.update(updateRequest);
 
-          //Pushing the JSON Data in Sheet
-          const updateRequest = {
-            spreadsheetId: sheetId,
-            range: 'TCv2!A2',
-            // insertDataOption: 'INSERT_ROWS',
-            valueInputOption: 'USER_ENTERED',
-            resource: {
-              values: [
-                ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
-                  [logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice]
-                )
-              ],
-            },
-          };
-          
-          await sheets.spreadsheets.values.update(updateRequest);
-      }
-      main();
-     await main();
+    }
+    await getTcResponse()
      res.send('Successfully Scrapped');
     } catch (error) {
       console.error(error);
