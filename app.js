@@ -31,6 +31,7 @@ app.get('/run-mystifly',async(req,res)=>{
   const finalXDest = req.query.destination;
   const tcdate = req.query.date;
   const mystId = req.query.mystId;
+  const airlineFilter = req.query.airlineFilter;
   async function getApiResponse() {
     const browser = await puppeteer.launch({
       args: isProduction ? [
@@ -119,6 +120,13 @@ app.get('/run-mystifly',async(req,res)=>{
       finalJson.push(modifieddata);
     });
    
+    
+    const mystifly = finalJson.filter(items=>{
+      if(airlineFilter){
+        return items.airlineName === `${airlineFilter}`
+      }
+      return items.airlineName
+    })
 
     const createRequest = {
       spreadsheetId: sheetId,
@@ -126,7 +134,7 @@ app.get('/run-mystifly',async(req,res)=>{
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: [
-          ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,originDest,finalDest,departureDate,stoppage,farePrice}) =>
+          ...mystifly.map(({logDate,provider,airlineName,airlineNumber,fareName,originDest,finalDest,departureDate,stoppage,farePrice}) =>
             [logDate,provider,airlineName,airlineNumber,fareName,originDest,finalDest,departureDate,stoppage,farePrice]
           )
         ],
