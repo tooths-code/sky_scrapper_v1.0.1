@@ -104,13 +104,19 @@ app.get('/run-mystifly',async(req,res)=>{
       hour12: false 
     });
 
+    const airlineNames = {
+      'G8':'Go First',
+      '6E':'Indigo',
+      'I5':'Air Asia',
+      'UK':'Vistara'
+    }
     dataPush.forEach(items => {
       const modifieddata = {
         logDate: formattedDate,
         provider:'Mystifly',
-        airlineName: items.SegmentRef.MarketingCarriercode === 'G8' ? 'Go First' : items.SegmentRef.MarketingCarriercode === '6E' ? 'Indigo' : items.SegmentRef.MarketingCarriercode === 'I5' ? 'Air Asia' : items.SegmentRef.MarketingCarriercode === 'UK' ? 'Vistara' : items.SegmentRef.MarketingCarriercode,
+        airlineName: airlineNames[items.SegmentRef.MarketingCarriercode] || items.SegmentRef.MarketingCarriercode,
         airlineNumber: `${items.SegmentRef.MarketingCarriercode} - ${items.SegmentRef.MarketingFlightNumber}`,
-        fareName: items.ItineraryRef.FareFamily === ""?"No Fare Family" : items.ItineraryRef.FareFamily,
+        fareName: items.ItineraryRef.FareFamily === ""? "No Fare Family" : items.ItineraryRef.FareFamily.charAt(0) + items.ItineraryRef.FareFamily.slice(1).toLowerCase(),
         farePrice: items.FareRef.PassengerFare[0].TotalFare,
         stoppage: items.SegmentRef.ArrivalAirportLocationCode === finalXDest ?'Direct':'Indirect',
         originDest: originXDest,
@@ -154,6 +160,8 @@ res.send('Yes Yes Yes Yes I did it');
 })
 
 
+
+//For TBO Scrapper
 app.get('/run-katran', async (req, res) => {
     try{
 
@@ -307,6 +315,14 @@ app.get('/run-katran', async (req, res) => {
                 });
 
             const finaltboScrap=[];
+            const fareNames = {
+              'Tactical':'Others',
+              'Cluster':'Others',
+              'Saver':'Published',
+              'Publish':'Published',
+              'Corporate':'Special Fare',
+              'SME.CrpCon':'Special Fare',
+            }
         tboscrap.forEach((items)=>{
             items.fareType.forEach(({ fareName, farePrice })=>{
                 
@@ -319,7 +335,7 @@ app.get('/run-katran', async (req, res) => {
                                 finalDest:items.finalDest,
                                 stoppage:items.stoppage,
                                 deptDate:items.deptDate,
-                                fareName,
+                                fareName: fareNames[fareName] || fareName,
                                 farePrice
                             };
                 finaltboScrap.push(newFareCombo);           
@@ -432,13 +448,18 @@ app.get('/run-katran', async (req, res) => {
       hour12: false 
       });
 
+      const airlineNames = {
+        'Airasia': 'Air Asia',
+        'Airasia India':'Air Asia'
+      }
+
       originalJsonArray1.forEach(items=>{
         const modifieddata = {
           logDate: formattedDate,
           fareName: items.fareIdentifier.name,
           farePrice: items.fF,
           provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': 'Null',
-          airlineName: items.sg[0].al.alN === 'Airasia'?'Air Asia':items.sg[0].al.alN === 'Airasia India'?'Air Asia':items.sg[0].al.alN,
+          airlineName: airlineNames[items.sg[0].al.alN] || items.sg[0].al.alN,
           airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
           orgDest:`${items.sg[0].or.aC}`,
           finDest: `${items.sg[items.sg.length-1].ds.aC}`,
@@ -551,7 +572,6 @@ app.get('/run-katran', async (req, res) => {
             })
             
             const abc = await Promise.all(multipleFetch);
-            // console.log(abc);
             return abc;
             
     }
@@ -571,7 +591,7 @@ app.get('/run-katran', async (req, res) => {
     let newSearchBody = e.map(items=>{
         return ({"searchId":`${items.searchId}`});
     })
-    // console.log(newSearchBody);
+    
 
 
     //to generate new  url and body
@@ -633,8 +653,8 @@ app.get('/run-katran', async (req, res) => {
           providerName: "TripJack",
           airlineName: items.processedTripInfo.aIs ? items.processedTripInfo.aIs[0].name : items.processedTripInfo.aI.name,
           airlineNumber: items.processedTripInfo.fN.join(','),
-          originDest: items.processedTripInfo.aa,
-          finalDest: items.processedTripInfo.da,
+          originDest: items.processedTripInfo.da,
+          finalDest: items.processedTripInfo.aa,
           stoppage: items.processedTripInfo.st >= 1 ? `${items.processedTripInfo.st}-Stops`:"Non-Stop",
           departureDate: items.processedTripInfo.dt.split('T')[0],
           fareTypes: items.processedTripInfo.pI
@@ -643,18 +663,35 @@ app.get('/run-katran', async (req, res) => {
       });
       // console.log(modifiedJsonArray);
       const newJsonTj = [];
+      const fareTypes = {
+        'GOMORE': 'Published',
+        'TACTICAL': 'Coupon',
+        'SALE': 'Coupon',
+        'CORP_CONNECT': 'Special Fare',
+        'CORPORATE': 'Special Fare',
+        'PREMIUM_FLEX': 'Flexi',
+        'FLEXI_PLUS': 'Flexi',
+        'OFFER_FARE_WITH_PNR': 'Series Fare',
+        'SME':'SME'
+      };
+
+      const airlineNames = {
+        'AirAsia India':'Air Asia',
+        'SpiceJet':'Spicejet',
+        'IndiGo':'Indigo'
+      };
       modifiedJsonArray.forEach(items=>{
         items.fareTypes.forEach(fares=>{
           const newJsonData = {
             logDate: items.logDate,
             providerName: "TripJack",
-            airlineName: items.airlineName==='AirAsia India'?'Air Asia':items.airlineName==='SpiceJet'?'Spicejet':items.airlineName==='IndiGo'?'Indigo':items.airlineName,
+            airlineName: airlineNames[items.airlineName] || items.airlineName ,
             airlineNumber: items.airlineNumber.split(',')[0].replace('-',' - '),
             originDest: items.originDest,
             finalDest: items.finalDest,
             stoppage: items.stoppage,
             departureDate: items.departureDate,
-            fareType: fares.ft,
+            fareType: fareTypes[fares.ft] || (fares.ft.charAt(0) + fares.ft.slice(1).toLowerCase()),
             farePrice: fares.net - fares.tds
           }
           newJsonTj.push(newJsonData)
