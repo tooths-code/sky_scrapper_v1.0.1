@@ -125,7 +125,8 @@ app.get('/run-mystifly',async(req,res)=>{
       }
       finalJson.push(modifieddata);
     });
-   
+    
+
     
     const mystifly = finalJson.filter(items=>{
       if(airlineFilter){
@@ -133,6 +134,13 @@ app.get('/run-mystifly',async(req,res)=>{
       }
       return items.airlineName
     })
+
+    const clearData = {
+      spreadsheetId: sheetId,
+      range: 'mystifly!A2:J',
+    };
+    
+    await sheets.spreadsheets.values.clear(clearData);
 
     const createRequest = {
       spreadsheetId: sheetId,
@@ -352,6 +360,12 @@ app.get('/run-katran', async (req, res) => {
           return items.airlineName
         })
         
+        const clearData = {
+          spreadsheetId: sheetId,
+          range: 'TBO V2!A2:J',
+        };
+        
+        await sheets.spreadsheets.values.clear(clearData);
         
         const createRequest = {
             spreadsheetId: sheetId,
@@ -476,9 +490,66 @@ app.get('/run-katran', async (req, res) => {
         }
         return items.airlineName
       })
+      // console.log(finalJson)
+
+      const modifiedData = [];
+
+      finalJson.forEach(item => {
+        const existingItem = modifiedData.find(
+          i =>
+            i.airlineName === item.airlineName &&
+            i.fareName === item.fareName &&
+            i.airlineNumber === item.airlineNumber &&
+            i.stoppage === item.stoppage
+        );
+        
+        if (existingItem) {
+          existingItem[item.provider] = item.farePrice;
+        } else {
+          const newItem = {
+            logDate: item.logDate,
+            fareName: item.fareName,
+            airlineName: item.airlineName,
+            airlineNumber: item.airlineNumber,
+            orgDest: item.orgDest,
+            finDest: item.finDest,
+            deptDate: item.deptDate,
+            stoppage: item.stoppage,
+            TC_Tripjack: 0,
+            TC_TBO: 0,
+            TC_EMT: 0
+          };
+          newItem[item.provider] = item.farePrice;
+          modifiedData.push(newItem);
+        }
+      });
+      
+      // console.log(modifiedData);
+
+      
+
+      const clearData = {
+        spreadsheetId: sheetId,
+        range: 'TCv3!A2:K',
+      };
+      
+      await sheets.spreadsheets.values.clear(clearData);
 
       //Pushing the JSON Data in Sheet
       const updateRequest = {
+        spreadsheetId: sheetId,
+        range: 'TCv3!A2',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: [
+            ...modifiedData.map(({logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT}) =>
+              [logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT]
+            )
+          ],
+        },
+      };
+
+      const updateRequest2 = {
         spreadsheetId: sheetId,
         range: 'TCv2!A2',
         valueInputOption: 'USER_ENTERED',
@@ -490,8 +561,9 @@ app.get('/run-katran', async (req, res) => {
           ],
         },
       };
-      
+
       await sheets.spreadsheets.values.update(updateRequest);
+      // await sheets.spreadsheets.values.update(updateRequest2);
 
     }
     await getTcResponse()
@@ -705,6 +777,14 @@ app.get('/run-katran', async (req, res) => {
         return items.airlineName
       })
       // console.log(newJsonTj);
+
+      const clearData = {
+        spreadsheetId: sheetId,
+        range: 'tripjack!A2:J',
+      };
+      
+      await sheets.spreadsheets.values.clear(clearData);
+
       const createRequest = {
         spreadsheetId: sheetId,
         range: 'tripjack!A2',
