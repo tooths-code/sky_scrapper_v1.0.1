@@ -436,7 +436,7 @@ app.get('/run-katran', async (req, res) => {
       : puppeteer.executablePath(),
 });
       const page = await browser.newPage();
-      await page.goto('https://www.travclan.com',{timeout: 60000});
+      await page.goto('https://www.travclan.com/',{timeout: 60000});
       const response = await page.evaluate(({ headers, body }) => {
         return fetch('https://aggregator-flights-v1.travclan.com/api/v2/flights/search/', {
           method: 'POST',
@@ -448,7 +448,7 @@ app.get('/run-katran', async (req, res) => {
         .catch(error => console.error(error));
       }, { headers, body }, { timeout: 60000 });
     
-      await browser.close();
+      // await browser.close();
       const modifiedJsonArray = [];
       const originalJsonArray1 = response.response.results.outboundFlights
       const dateNow = new Date();  
@@ -461,18 +461,49 @@ app.get('/run-katran', async (req, res) => {
       second: '2-digit', 
       hour12: false 
       });
+      
+      
+      
+
 
       const airlineNames = {
         'Airasia': 'Air Asia',
         'Airasia India':'Air Asia'
       }
 
+
+      // // Ye sirf TC_VIA ke lie hai
+      // originalJsonArray1.forEach(items=>{
+
+      //   if(items.pr==='P4'){
+      //     const modifieddata = {
+      //       logDate: formattedDate,
+      //       fareName: items.fareIdentifier.name,
+      //       supplierFareName: items.pFC,
+      //       farePrice: items.fF,
+      //       provider: items.pr === 'P4' ? 'TC_Via':'Null',
+      //       airlineName: airlineNames[items.sg[0].al.alN] || items.sg[0].al.alN,
+      //       airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
+      //       orgDest:`${items.sg[0].or.aC}`,
+      //       finDest: `${items.sg[items.sg.length-1].ds.aC}`,
+      //       deptDate: `${items.sg[0].or.dT.split('T')[0]}`,
+      //       stoppage: items.sg.length !== 1 ? 'Stops' : 'Non-Stop',
+      //     }
+  
+      //   modifiedJsonArray.push(modifieddata);
+      //   }
+        
+      // })
+
+      //Ye sab provider ke lie hai
       originalJsonArray1.forEach(items=>{
+
         const modifieddata = {
           logDate: formattedDate,
           fareName: items.fareIdentifier.name,
+          supplierFareName: items.pFC,
           farePrice: items.fF,
-          provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': 'Null',
+          provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': items.pr === 'P4' ? 'TC_Via':'Null',
           airlineName: airlineNames[items.sg[0].al.alN] || items.sg[0].al.alN,
           airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
           orgDest:`${items.sg[0].or.aC}`,
@@ -517,7 +548,8 @@ app.get('/run-katran', async (req, res) => {
             stoppage: item.stoppage,
             TC_Tripjack: 0,
             TC_TBO: 0,
-            TC_EMT: 0
+            TC_EMT: 0,
+            TC_Via: 0
           };
           newItem[item.provider] = item.farePrice;
           modifiedData.push(newItem);
@@ -530,7 +562,7 @@ app.get('/run-katran', async (req, res) => {
 
       const clearData = {
         spreadsheetId: sheetId,
-        range: 'TCv3!A2:K',
+        range: 'TCv3!A2:L',
       };
       
       await sheets.spreadsheets.values.clear(clearData);
@@ -542,25 +574,25 @@ app.get('/run-katran', async (req, res) => {
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: [
-            ...modifiedData.map(({logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT}) =>
-              [logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT]
+            ...modifiedData.map(({logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via}) =>
+              [logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via]
             )
           ],
         },
       };
 
-      const updateRequest2 = {
-        spreadsheetId: sheetId,
-        range: 'TCv2!A2',
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-          values: [
-            ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
-              [logDate,provider,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,farePrice]
-            )
-          ],
-        },
-      };
+      // const updateRequest2 = {
+      //   spreadsheetId: sheetId,
+      //   range: 'VIA Fare Types!A2',
+      //   valueInputOption: 'USER_ENTERED',
+      //   resource: {
+      //     values: [
+      //       ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
+      //         [logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice]
+      //       )
+      //     ],
+      //   },
+      // };
 
       await sheets.spreadsheets.values.update(updateRequest);
       // await sheets.spreadsheets.values.update(updateRequest2);
