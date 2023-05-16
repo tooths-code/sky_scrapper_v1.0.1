@@ -567,35 +567,35 @@ app.get('/run-katran', async (req, res) => {
       
       await sheets.spreadsheets.values.clear(clearData);
 
-      //Pushing the JSON Data in Sheet
-      const updateRequest = {
+//       //Pushing the JSON Data in Sheet
+//       const updateRequest = {
+//         spreadsheetId: sheetId,
+//         range: 'TCv3!A2',
+//         valueInputOption: 'USER_ENTERED',
+//         resource: {
+//           values: [
+//             ...modifiedData.map(({logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via}) =>
+//               [logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via]
+//             )
+//           ],
+//         },
+//       };
+
+      const updateRequest2 = {
         spreadsheetId: sheetId,
         range: 'TCv3!A2',
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: [
-            ...modifiedData.map(({logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via}) =>
-              [logDate,airlineName,airlineNumber,fareName,orgDest,finDest,deptDate,stoppage,TC_Tripjack,TC_TBO,TC_EMT,TC_Via]
+            ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
+              [logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice]
             )
           ],
         },
       };
 
-      // const updateRequest2 = {
-      //   spreadsheetId: sheetId,
-      //   range: 'VIA Fare Types!A2',
-      //   valueInputOption: 'USER_ENTERED',
-      //   resource: {
-      //     values: [
-      //       ...finalJson.map(({logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice}) =>
-      //         [logDate,provider,airlineName,airlineNumber,fareName,supplierFareName,orgDest,finDest,deptDate,stoppage,farePrice]
-      //       )
-      //     ],
-      //   },
-      // };
-
-      await sheets.spreadsheets.values.update(updateRequest);
-      // await sheets.spreadsheets.values.update(updateRequest2);
+//       await sheets.spreadsheets.values.update(updateRequest);
+      await sheets.spreadsheets.values.update(updateRequest2);
 
     }
     await getTcResponse()
