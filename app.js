@@ -562,7 +562,7 @@ app.get('/run-katran', async (req, res) => {
 
       const clearData = {
         spreadsheetId: sheetId,
-        range: 'TCv3!A2:L',
+        range: 'TCv2!A2:L',
       };
       
       await sheets.spreadsheets.values.clear(clearData);
@@ -583,7 +583,7 @@ app.get('/run-katran', async (req, res) => {
 
       const updateRequest2 = {
         spreadsheetId: sheetId,
-        range: 'TCv3!A2',
+        range: 'TCv2!A2',
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: [
