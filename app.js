@@ -503,7 +503,7 @@ app.get('/run-katran', async (req, res) => {
           fareName: items.fareIdentifier.name,
           supplierFareName: items.pFC,
           farePrice: items.fF,
-          provider: items.pr === 'P2' ? 'TC_Tripjack' : items.pr === 'P3' ? 'TC_EMT' : items.pr === 'P1' ? 'TC_TBO': items.pr === 'P4' ? 'TC_Via':'Null',
+          provider: items.pr + items.db=== 'P2D1' ? 'TC_Tripjack API' : items.pr + items.db=== 'P2D2' ? 'TC_Tripjack GDS' : items.pr + items.db=== 'P1D1' ? 'TC_TBO API': items.pr + items.db=== 'P1D2' ? 'TC_TBO GDS':items.pr + items.db=== 'P3D1' ? 'TC_EMT API':items.pr + items.db=== 'P3D2' ? 'TC_EMT GDS':items.pr + items.db=== 'P4D1' ? 'TC_Via API':items.pr + items.db=== 'P4D2' ? 'TC_Via GDS':Null,
           airlineName: airlineNames[items.sg[0].al.alN] || items.sg[0].al.alN,
           airlineNumber: `${items.sg[0].al.alC} - ${items.sg[0].al.fN}`,
           orgDest:`${items.sg[0].or.aC}`,
@@ -523,38 +523,38 @@ app.get('/run-katran', async (req, res) => {
       })
       // console.log(finalJson)
 
-      const modifiedData = [];
+      // const modifiedData = [];
 
-      finalJson.forEach(item => {
-        const existingItem = modifiedData.find(
-          i =>
-            i.airlineName === item.airlineName &&
-            i.fareName === item.fareName &&
-            i.airlineNumber === item.airlineNumber &&
-            i.stoppage === item.stoppage
-        );
+      // finalJson.forEach(item => {
+      //   const existingItem = modifiedData.find(
+      //     i =>
+      //       i.airlineName === item.airlineName &&
+      //       i.fareName === item.fareName &&
+      //       i.airlineNumber === item.airlineNumber &&
+      //       i.stoppage === item.stoppage
+      //   );
         
-        if (existingItem) {
-          existingItem[item.provider] = item.farePrice;
-        } else {
-          const newItem = {
-            logDate: item.logDate,
-            fareName: item.fareName,
-            airlineName: item.airlineName,
-            airlineNumber: item.airlineNumber,
-            orgDest: item.orgDest,
-            finDest: item.finDest,
-            deptDate: item.deptDate,
-            stoppage: item.stoppage,
-            TC_Tripjack: 0,
-            TC_TBO: 0,
-            TC_EMT: 0,
-            TC_Via: 0
-          };
-          newItem[item.provider] = item.farePrice;
-          modifiedData.push(newItem);
-        }
-      });
+      //   if (existingItem) {
+      //     existingItem[item.provider] = item.farePrice;
+      //   } else {
+      //     const newItem = {
+      //       logDate: item.logDate,
+      //       fareName: item.fareName,
+      //       airlineName: item.airlineName,
+      //       airlineNumber: item.airlineNumber,
+      //       orgDest: item.orgDest,
+      //       finDest: item.finDest,
+      //       deptDate: item.deptDate,
+      //       stoppage: item.stoppage,
+      //       TC_Tripjack: 0,
+      //       TC_TBO: 0,
+      //       TC_EMT: 0,
+      //       TC_Via: 0
+      //     };
+      //     newItem[item.provider] = item.farePrice;
+      //     modifiedData.push(newItem);
+      //   }
+      // });
       
       // console.log(modifiedData);
 
